@@ -21,11 +21,17 @@ class Consumer:
 
         
     def load_config(self):
+        """
+            Load configuration file
+        """
         with open('config.json') as json_file:
             config = json.load(json_file)
         return config
 
     def init_consumer(self):
+        """
+            Initialize consumer and connect to the Kafka Server
+        """
         try:
             consumer = KafkaConsumer (
                 self.kafka_topic,
@@ -43,6 +49,9 @@ class Consumer:
         
 
     def db_connect(self):
+        """
+            Connect to the database
+        """
         # db connect
         # https://www.postgresqltutorial.com/postgresql-python/connect/
         try:
@@ -61,6 +70,9 @@ class Consumer:
             raise Exception("Unable to connect to database")
 
     def save_message(self, msg):
+        """
+            Save message from the poll
+        """
         try:
             cur = self.db_conn.cursor()
             cur.execute(
@@ -75,6 +87,9 @@ class Consumer:
             print(ex)
         
     def poll_from_topic(self):
+        """
+            Retrive message from topic
+        """
         for msg in self.consumer:
             self.save_message(msg)
             print("Topic Name=%s,Message=%s"%(msg.topic,msg.value))

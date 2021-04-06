@@ -20,6 +20,9 @@ class Producer:
         self.start_multithreaded_loop(config['websites'])
         
     def init_producer(self):
+        """
+            Initialize producer and connect to the Kafka Server
+        """
         try:
             producer = KafkaProducer(
                     bootstrap_servers=self.kafka_server,
@@ -36,13 +39,18 @@ class Producer:
         self.producer = producer
 
     def load_config(self):
+        """
+            Load configuration file
+        """
         with open('config.json') as json_file:
             config = load(json_file)
         return config
     
     def start_multithreaded_loop(self, websites):
+        """
+            Multithreading to support multiple website monitoring
+        """
         print("start_multithreaded_loop")
-        # Multithreading to support multiple website monitoring
         # https://docs.python.org/3/library/concurrent.futures.html
         with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
             futures = [executor.submit(self.initialize_loop, website, params) for website, params in websites.items()]
