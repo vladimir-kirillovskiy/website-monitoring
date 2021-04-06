@@ -5,3 +5,18 @@ The application can monitor one or more websites from config.json. Additionaly r
 
 Database table can be created with the create_table.sql script
 
+## Instalation
+### Arch linux
+Install kafka - https://wiki.archlinux.org/index.php/Apache_Kafka
+
+``` yay -S kafka ```
+
+start kafka, which will also run zookeeper@kafka.service as well
+
+``` sudo systemctl start kafka.service ```
+
+Install PostgreSQL - https://wiki.archlinux.org/index.php/PostgreSQL
+
+Install python libraries
+
+``` pip install -r requirements.txt ```
