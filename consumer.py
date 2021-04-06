@@ -2,40 +2,67 @@ import psycopg2
 import json
 from kafka import KafkaConsumer
 
-if __name__ == "__main__":
+class Consumer:
+    kafka_server = None
+    consumer = None
+    kafka_topic = None
+    db_config = None
+    db_conn = None
 
-    with open('config.json') as json_file:
-        config = json.load(json_file)
+    def __init__(self):
+        config = self.load_config()
+        self.kafka_server = config['credentials']['kafka']['uri']
+        self.kafka_topic = config['credentials']['kafka']['topic']
+        self.db_config  = config['credentials']['db']
 
-    topic = config['credentials']['kafka']['topic']
+        self.init_consumer()
+        self.db_connect()
+        self.poll_from_topic()
 
-    try:
-        consumer = KafkaConsumer (
-            topic,
-            bootstrap_servers=config['credentials']['kafka']['uri'],
-            value_deserializer=lambda x: json.loads(x.decode('utf-8'))
-        )
-    except Exception as ex:
-        raise Exception("Unable to connect to Kafka from consumer")
+        
+    def load_config(self):
+        with open('config_aiven.json') as json_file:
+            config = json.load(json_file)
+        return config
 
-    # db connect
-    # https://www.postgresqltutorial.com/postgresql-python/connect/
-    try:
-        conn = psycopg2.connect(
-            host=config['credentials']['db']['host'],
-            database=config['credentials']['db']['db_name'],
-            user=config['credentials']['db']['user'],
-            password=config['credentials']['db']['password']
-        )
-        conn.autocommit = True
-
-        print("Connected to the Database")
-    except Exception as ex:
-        raise Exception("Unable to connect to database")
-
-    for msg in consumer:
+    def init_consumer(self):
         try:
-            cur = conn.cursor()
+            consumer = KafkaConsumer (
+                self.kafka_topic,
+                bootstrap_servers=self.kafka_server,
+                security_protocol="SSL",
+                ssl_cafile="keys/ca.pem",
+                ssl_certfile="keys/service.cert",
+                ssl_keyfile="keys/service.key",
+                value_deserializer=lambda x: json.loads(x.decode('utf-8'))
+            )
+        except Exception as ex:
+            raise Exception("Unable to connect to Kafka from consumer")
+
+        self.consumer = consumer
+        
+
+    def db_connect(self):
+        # db connect
+        # https://www.postgresqltutorial.com/postgresql-python/connect/
+        try:
+            conn = psycopg2.connect(
+                host=self.db_config['host'],
+                database=self.db_config['db_name'],
+                port=self.db_config['port'],
+                user=self.db_config['user'],
+                password=self.db_config['password']
+            )
+            conn.autocommit = True
+
+            self.db_conn = conn
+            print("Connected to the Database")
+        except Exception as ex:
+            raise Exception("Unable to connect to database")
+
+    def save_message(self, msg):
+        try:
+            cur = self.db_conn.cursor()
             cur.execute(
                 "insert into website_availability(website, status_code, response_time, regex_found) values('{}', {}, {}, {})".format(
                     msg.value["target"],
@@ -46,4 +73,11 @@ if __name__ == "__main__":
             )
         except Exception as ex:
             print(ex)
-        print("Topic Name=%s,Message=%s"%(msg.topic,msg.value))
+        
+    def poll_from_topic(self):
+        for msg in self.consumer:
+            self.save_message(msg)
+            print("Topic Name=%s,Message=%s"%(msg.topic,msg.value))
+
+if __name__ == "__main__":
+    c = Consumer()
