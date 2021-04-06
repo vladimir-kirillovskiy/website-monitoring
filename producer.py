@@ -36,7 +36,7 @@ class Producer:
         self.producer = producer
 
     def load_config(self):
-        with open('config_aiven.json') as json_file:
+        with open('config.json') as json_file:
             config = load(json_file)
         return config
     

@@ -21,7 +21,7 @@ class Consumer:
 
         
     def load_config(self):
-        with open('config_aiven.json') as json_file:
+        with open('config.json') as json_file:
             config = json.load(json_file)
         return config
 
