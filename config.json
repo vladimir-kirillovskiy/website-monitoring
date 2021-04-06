@@ -1,0 +1,29 @@
+{
+	"credentials": {
+		"kafka": {
+			"topic": "",
+			"uri": ""
+		},
+		"db": {
+			"host": "",
+			"db_name": "",
+			"port": "",
+			"user": "",
+			"password": ""
+		}
+	},
+	"websites": {
+		"https://google.com": {
+			"regex": "Some string with no match",
+			"interval": 10
+		},
+		"https://www.35mmc.com/": {
+			"regex": "camera",
+			"interval": 15
+		},
+		"https://example.com": {
+			"regex": "Example Domain",
+			"interval": 20
+		}
+	}
+}
